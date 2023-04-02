@@ -1,0 +1,26 @@
+import arcpy
+
+# Set up the workspace
+arcpy.env.workspace = "C:/data"
+arcpy.env.overwriteOutput = True
+
+# Define the input and output shapefiles
+input_shapefile = "shoal_soundings.shp"
+output_shapefile = "shoal_soundings_selected.shp"
+
+# Create a feature layer from the input shapefile
+arcpy.MakeFeatureLayer_management(input_shapefile, "soundings_lyr")
+
+# Create a SQL expression to select the shoal-biased soundings
+# The expression selects points where the z_depth field is negative and
+# the FID modulo 20 is zero (i.e., selects points at 20 meter spacing)
+sql_expression = "z_depth < 0 AND FID % 20 = 0"
+
+# Select the shoal-biased soundings using the SQL expression
+arcpy.SelectLayerByAttribute_management("soundings_lyr", "NEW_SELECTION", sql_expression)
+
+# Copy the selected features to a new shapefile
+arcpy.CopyFeatures_management("soundings_lyr", output_shapefile)
+
+# Clean up by deleting the feature layer
+arcpy.Delete_management("soundings_lyr")
